@@ -1,0 +1,10 @@
+# Normalize line endings to LF for all text files (builds run on Linux in CI/Docker)
+* text=auto eol=lf
+
+# Binary types
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
