@@ -17,7 +17,12 @@ import logging
 
 from providers import LLMProvider
 from solvers.equations import get_equation
-from solvers.sympy_solver import SolveResult, solve_for
+from solvers.sympy_solver import (
+    SolveResult,
+    equation_latex,
+    solution_latex,
+    solve_for,
+)
 
 from .classifier import classify_domain
 from .explainer import explain
@@ -122,10 +127,12 @@ def build_response(
         "variables": dict(result.substitutions),
         "inputs": inputs,
         "equations": [eq.formula, f"{result.target} = {result.expression}"],
+        "equation_latex": equation_latex(result.equation_id),
         "answer": {
             "value": result.value,
             "unit": result.unit,
             "expression": result.expression,
+            "latex": solution_latex(result.equation_id, result.target),
         },
         "simulation_type": sim_type,
         "simulation_params": sim_params,
@@ -170,9 +177,11 @@ class PhysicsAgent:
                 "value": result.value,
                 "unit": result.unit,
                 "expression": result.expression,
+                "latex": solution_latex(equation_id, target),
             },
             "simulation_type": sim_type,
             "simulation_params": sim_params,
             "steps": result.steps,
             "equations": [eq.formula, f"{target} = {result.expression}"],
+            "equation_latex": equation_latex(equation_id),
         }

@@ -12,6 +12,8 @@ from solvers.sympy_solver import (
     MissingValueError,
     SolverError,
     build_equation,
+    equation_latex,
+    solution_latex,
     solve_for,
 )
 
@@ -90,6 +92,23 @@ def test_steps_and_expression_present():
 
 
 # --- Library integrity --------------------------------------------------------
+
+def test_latex_rendering():
+    eqx = equation_latex("projectile_range")
+    assert "\\theta" in eqx  # greek theta
+    assert "\\frac" in eqx  # division rendered as a fraction
+    sol = solution_latex("projectile_range", "R")
+    assert sol.startswith("R =")
+    # 'wavelength' is prettified to \lambda
+    assert "\\lambda" in equation_latex("wave_speed")
+
+
+def test_solution_latex_never_raises():
+    # Every equation/target combination must return a string, not blow up.
+    for eq in EQUATIONS.values():
+        for var in eq.variables:
+            assert isinstance(solution_latex(eq.id, var), str)
+
 
 def test_every_equation_builds():
     """Each equation parses and declares all of its symbols in units."""

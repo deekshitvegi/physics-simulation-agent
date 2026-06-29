@@ -28,6 +28,8 @@ __all__ = [
     "solve_for",
     "catalog",
     "get_equation",
+    "equation_latex",
+    "solution_latex",
     "DOMAINS",
     "DOMAIN_INFO",
     "SIMULATION_TYPES",
@@ -75,6 +77,50 @@ class SolveResult:
             "steps": self.steps,
             "simulation": self.simulation,
         }
+
+
+# Multi-letter symbol names SymPy doesn't render as Greek/operators on its own.
+_LATEX_PRETTY = {"wavelength": r"\lambda", "dT": r"\Delta T", "Vol": "V"}
+
+
+def _pretty_latex(s: str) -> str:
+    for raw, pretty in _LATEX_PRETTY.items():
+        s = s.replace(raw, pretty)
+    return s
+
+
+def _build_display(eq_def: Equation) -> tuple[sp.Expr, sp.Expr, dict[str, sp.Symbol]]:
+    """Parse an equation's display forms (no degree->radian noise) for LaTeX."""
+    symbols = {name: sp.Symbol(name) for name in eq_def.units}
+    local_ns = {**symbols, **_FUNC_NS}
+    lhs = sp.sympify(eq_def.display_lhs or eq_def.lhs, locals=local_ns)
+    rhs = sp.sympify(eq_def.display_rhs or eq_def.rhs, locals=local_ns)
+    return lhs, rhs, symbols
+
+
+def equation_latex(equation_id: str) -> str:
+    """LaTeX of the equation as written (e.g. ``R = \\frac{v_0^2 \\sin{2\\theta}}{g}``)."""
+    eq_def = get_equation(equation_id)
+    try:
+        lhs, rhs, _ = _build_display(eq_def)
+        return _pretty_latex(sp.latex(sp.Eq(lhs, rhs)))
+    except Exception:  # noqa: BLE001 - display is best-effort
+        return eq_def.display_formula
+
+
+def solution_latex(equation_id: str, target: str) -> str:
+    """LaTeX of ``target = <rearranged expression>`` for the solved variable."""
+    eq_def = get_equation(equation_id)
+    try:
+        lhs, rhs, symbols = _build_display(eq_def)
+        if target not in symbols:
+            return _pretty_latex(sp.latex(sp.Symbol(target)))
+        sols = sp.solve(sp.Eq(lhs, rhs), symbols[target])
+        if not sols:
+            return _pretty_latex(sp.latex(rhs))
+        return _pretty_latex(f"{sp.latex(symbols[target])} = {sp.latex(sols[0])}")
+    except Exception:  # noqa: BLE001 - display is best-effort
+        return f"{target} = ?"
 
 
 def build_equation(eq_def: Equation) -> tuple[sp.Equality, dict[str, sp.Symbol]]:

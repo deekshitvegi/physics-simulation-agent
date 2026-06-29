@@ -89,10 +89,18 @@ class Equation:
     units: dict[str, str]
     constants: dict[str, float] = field(default_factory=dict)
     simulation: str | None = None
+    # Optional cleaner forms for display/LaTeX (e.g. angle equations omit the
+    # inline degree->radian conversion). Fall back to lhs/rhs when unset.
+    display_lhs: str | None = None
+    display_rhs: str | None = None
 
     @property
     def formula(self) -> str:
         return f"{self.lhs} = {self.rhs}"
+
+    @property
+    def display_formula(self) -> str:
+        return f"{self.display_lhs or self.lhs} = {self.display_rhs or self.rhs}"
 
     @property
     def variables(self) -> list[str]:
@@ -123,6 +131,7 @@ _EQUATIONS: list[Equation] = [
         "Horizontal range of a projectile launched on level ground.",
         {"R": "m", "v0": "m/s", "theta": "deg", "g": "m/s^2"},
         {"g": 9.81}, "projectile",
+        display_rhs="v0**2 * sin(2*theta) / g",
     ),
     Equation(
         "projectile_max_height", "Projectile Maximum Height", "mechanics",
@@ -130,6 +139,7 @@ _EQUATIONS: list[Equation] = [
         "Peak height reached by a projectile.",
         {"H": "m", "v0": "m/s", "theta": "deg", "g": "m/s^2"},
         {"g": 9.81}, "projectile",
+        display_rhs="v0**2 * sin(theta)**2 / (2*g)",
     ),
     Equation(
         "projectile_time_of_flight", "Projectile Time of Flight", "mechanics",
@@ -137,6 +147,7 @@ _EQUATIONS: list[Equation] = [
         "Total time a projectile spends in the air on level ground.",
         {"t": "s", "v0": "m/s", "theta": "deg", "g": "m/s^2"},
         {"g": 9.81}, "projectile",
+        display_rhs="2*v0*sin(theta) / g",
     ),
     Equation(
         "newtons_second_law", "Newton's Second Law", "mechanics",
@@ -229,6 +240,7 @@ _EQUATIONS: list[Equation] = [
         "n1*sin(theta1*pi/180)", "n2*sin(theta2*pi/180)",
         "Refraction at an interface between two media.",
         {"n1": "", "theta1": "deg", "n2": "", "theta2": "deg"},
+        display_lhs="n1*sin(theta1)", display_rhs="n2*sin(theta2)",
     ),
 
     # ---------------- Electricity & Circuits ----------------
