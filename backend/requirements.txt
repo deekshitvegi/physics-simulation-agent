@@ -8,8 +8,7 @@ python-dotenv==1.0.1
 # --- Symbolic math engine ---
 sympy==1.13.3
 
-# --- HTTP + retry ---
-httpx==0.28.1
+# --- Retry / backoff ---
 tenacity==9.0.0
 
 # --- LLM provider SDKs ---
