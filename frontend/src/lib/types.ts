@@ -12,6 +12,14 @@ export interface Answer {
   value: number
   unit: string
   expression: string
+  latex?: string
+}
+
+// Props shared by every p5.js simulation component.
+export interface SimProps {
+  params: SimulationParams
+  playing: boolean
+  resetKey: number
 }
 
 export interface InputVar {
@@ -30,6 +38,7 @@ export interface SolveResponse {
   variables: Record<string, number>
   inputs: InputVar[]
   equations: string[]
+  equation_latex: string
   answer: Answer
   simulation_type: SimulationType | null
   simulation_params: SimulationParams
@@ -46,6 +55,7 @@ export interface QuickSolveResponse {
   simulation_params: SimulationParams
   steps: string[]
   equations: string[]
+  equation_latex: string
 }
 
 export interface ProvidersResponse {
