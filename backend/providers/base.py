@@ -46,6 +46,18 @@ class LLMProvider(ABC):
         """Perform a single (un-retried) completion call. Return the text."""
         raise NotImplementedError
 
+    async def chat(
+        self, messages: list[dict], tools: list[dict] | None = None
+    ) -> dict:
+        """Multi-turn chat with optional tool-calling.
+
+        Returns ``{"content": str | None, "tool_calls": [{"id", "name",
+        "arguments"}]}``. Override in providers that support function calling.
+        """
+        raise NotImplementedError(
+            f"Tool-calling chat is not implemented for provider '{self.name}'."
+        )
+
     async def complete(self, system: str, user: str) -> str:
         """Run a completion with 3 attempts and exponential backoff.
 

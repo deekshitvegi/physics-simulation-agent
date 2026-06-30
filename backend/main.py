@@ -17,7 +17,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from agents import PhysicsAgent
+from agents import PhysicsAgent, run_chat
 from config import get_settings
 from providers import (
     LLMError,
@@ -80,6 +80,16 @@ class QuickSolveRequest(BaseModel):
     variables: dict[str, float] = Field(default_factory=dict, description="Updated known values.")
 
 
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="'user' or 'assistant'.")
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage] = Field(..., min_length=1)
+    provider: str | None = None
+
+
 # --- Routes -------------------------------------------------------------------
 
 @app.get("/")
@@ -138,6 +148,24 @@ async def solve(req: SolveRequest) -> dict:
     except Exception as exc:  # noqa: BLE001
         logger.exception("Unexpected error solving problem")
         raise HTTPException(status_code=500, detail="Internal error while solving the problem.") from exc
+
+
+@app.post("/api/chat")
+async def chat(req: ChatRequest) -> dict:
+    try:
+        provider = ProviderFactory.create(req.provider, settings)
+    except (ProviderNotConfigured, UnknownProvider) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    try:
+        return await run_chat(provider, [m.model_dump() for m in req.messages])
+    except NotImplementedError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except LLMError as exc:
+        raise HTTPException(status_code=502, detail=f"LLM provider error: {exc}") from exc
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Unexpected error in chat")
+        raise HTTPException(status_code=500, detail="Internal error during chat.") from exc
 
 
 @app.post("/api/solve/quick")
