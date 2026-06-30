@@ -96,6 +96,14 @@ def test_parse_json_handles_fences():
     assert data == {"a": 1, "b": "x"}
 
 
+def test_parse_json_repairs_arithmetic_values():
+    # Models sometimes emit expressions (e.g. "2 AU") as unevaluated arithmetic.
+    data = parse_json('{"target": "T", "knowns": {"r": 2*1.496e11, "M": 1.989e30, "n": "x"}}')
+    assert abs(data["knowns"]["r"] - 2.992e11) < 1e6
+    assert data["knowns"]["M"] == 1.989e30
+    assert data["knowns"]["n"] == "x"  # strings untouched
+
+
 def test_coerce_float_variants():
     assert coerce_float("20 m/s") == 20.0
     assert coerce_float("1,000") == 1000.0

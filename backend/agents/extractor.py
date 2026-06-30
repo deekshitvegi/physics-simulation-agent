@@ -50,6 +50,8 @@ _SYSTEM = (
     "- Convert units as needed (km -> m, grams -> kg, etc.).\n"
     "- Do NOT include the target variable in knowns.\n"
     "- Do NOT include constants that are listed as auto-filled.\n"
+    "- Each value MUST be a single JSON number you have already computed. Never "
+    "write arithmetic or units (e.g. for 2 AU write 2.992e11, NOT 2*1.496e11).\n"
     "- For well-known bodies, supply the numbers (Earth mass 5.972e24 kg, "
     "Earth radius 6.371e6 m, etc.).\n"
     'Respond with ONLY JSON: {"equation_id": "...", "target": "...", '
