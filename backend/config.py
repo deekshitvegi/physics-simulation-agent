@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     # Model overrides per provider. Sensible, broadly-available defaults;
     # change these in .env if you have access to newer models.
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-2.0-flash"
     groq_model: str = "llama-3.3-70b-versatile"
     mistral_model: str = "mistral-large-latest"
     anthropic_model: str = "claude-3-5-sonnet-latest"
