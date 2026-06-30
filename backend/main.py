@@ -83,6 +83,9 @@ class QuickSolveRequest(BaseModel):
 class ChatMessage(BaseModel):
     role: str = Field(..., description="'user' or 'assistant'.")
     content: str
+    images: list[str] | None = Field(
+        None, description="Optional base64 data-URL images attached to the message."
+    )
 
 
 class ChatRequest(BaseModel):

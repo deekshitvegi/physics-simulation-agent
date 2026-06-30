@@ -82,6 +82,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   artifacts?: ChatSimArtifact[]
+  images?: string[]
 }
 
 export interface DomainInfo {

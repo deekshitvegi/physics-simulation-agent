@@ -5,6 +5,9 @@ import re
 
 from .base import LLMProvider
 
+# Multimodal (vision) model used automatically when a message contains an image.
+_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+
 # Llama on Groq sometimes emits tool calls as text instead of structured
 # tool_calls, causing a 400 'tool_use_failed'. Recover them from the body.
 _FUNC_TAG = re.compile(r"<function=(\w+)\s*(\{.*?\})\s*(?:</function>)?", re.DOTALL)
@@ -49,7 +52,10 @@ class GroqProvider(LLMProvider):
         return resp.choices[0].message.content or ""
 
     async def chat(self, messages: list[dict], tools: list[dict] | None = None) -> dict:
-        kwargs: dict = {"model": self.model, "messages": messages, "temperature": 0.2}
+        # Switch to the vision model automatically when an image is present.
+        multimodal = any(isinstance(m.get("content"), list) for m in messages)
+        model = _VISION_MODEL if multimodal else self.model
+        kwargs: dict = {"model": model, "messages": messages, "temperature": 0.2}
         if tools:
             kwargs["tools"] = tools
             kwargs["tool_choice"] = "auto"

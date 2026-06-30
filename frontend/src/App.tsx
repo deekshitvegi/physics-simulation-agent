@@ -19,8 +19,22 @@ export default function App() {
   const [online, setOnline] = useState<boolean | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
+  const [pendingImages, setPendingImages] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement | null>(null)
+  const fileRef = useRef<HTMLInputElement | null>(null)
+
+  const addFiles = (files: FileList | null) => {
+    if (!files) return
+    Array.from(files)
+      .filter((f) => f.type.startsWith('image/'))
+      .slice(0, 3)
+      .forEach((file) => {
+        const reader = new FileReader()
+        reader.onload = () => setPendingImages((prev) => [...prev, reader.result as string])
+        reader.readAsDataURL(file)
+      })
+  }
 
   useEffect(() => {
     api
@@ -39,14 +53,20 @@ export default function App() {
 
   const send = async (text: string) => {
     const trimmed = text.trim()
-    if (!trimmed || loading) return
-    const history: ChatMessage[] = [...messages, { role: 'user', content: trimmed }]
+    if ((!trimmed && pendingImages.length === 0) || loading) return
+    const userMsg: ChatMessage = {
+      role: 'user',
+      content: trimmed || 'Solve the problem in this image.',
+      images: pendingImages.length ? pendingImages : undefined,
+    }
+    const history: ChatMessage[] = [...messages, userMsg]
     setMessages(history)
     setInput('')
+    setPendingImages([])
     setLoading(true)
     try {
       const res = await api.chat(
-        history.map((m) => ({ role: m.role, content: m.content })),
+        history.map((m) => ({ role: m.role, content: m.content, images: m.images })),
         provider || undefined,
       )
       setMessages([...history, { role: 'assistant', content: res.reply, artifacts: res.artifacts }])
@@ -112,7 +132,42 @@ export default function App() {
               <code className="font-mono">uvicorn main:app --reload</code>.
             </p>
           )}
+          {pendingImages.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {pendingImages.map((src, i) => (
+                <div key={i} className="relative">
+                  <img src={src} alt="attachment" className="h-16 w-16 rounded-lg border border-white/10 object-cover" />
+                  <button
+                    onClick={() => setPendingImages((p) => p.filter((_, j) => j !== i))}
+                    className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-rose-500 text-xs text-white"
+                    aria-label="Remove image"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex items-end gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                addFiles(e.target.files)
+                e.target.value = ''
+              }}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={loading}
+              title="Attach an image (diagram or problem screenshot)"
+              className="grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-lg text-violet-200 transition-colors hover:border-fuchsia-400/40 hover:text-white disabled:opacity-50"
+            >
+              📎
+            </button>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -123,10 +178,14 @@ export default function App() {
                 }
               }}
               rows={1}
-              placeholder="Ask a physics or math question…  (Enter to send, Shift+Enter for a new line)"
+              placeholder="Ask a question, or attach a problem image…  (Enter to send)"
               className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-violet-50 outline-none placeholder:text-violet-300/40 focus:border-fuchsia-400/40"
             />
-            <button onClick={() => send(input)} disabled={loading || !input.trim()} className="btn-cosmic h-[44px]">
+            <button
+              onClick={() => send(input)}
+              disabled={loading || (!input.trim() && pendingImages.length === 0)}
+              className="btn-cosmic h-[44px]"
+            >
               {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : 'Send'}
             </button>
           </div>
@@ -168,6 +227,9 @@ function Bubble({ message }: { message: ChatMessage }) {
     return (
       <div className="flex justify-end">
         <div className="max-w-[85%] rounded-2xl rounded-br-sm border border-fuchsia-400/20 bg-gradient-to-br from-violet-600/25 to-fuchsia-600/20 px-4 py-2.5 text-sm text-violet-50">
+          {message.images?.map((src, i) => (
+            <img key={i} src={src} alt="attached" className="mb-2 max-h-48 rounded-lg border border-white/10" />
+          ))}
           <span className="whitespace-pre-wrap">{message.content}</span>
         </div>
       </div>

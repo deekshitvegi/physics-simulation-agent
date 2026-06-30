@@ -66,7 +66,10 @@ export const api = {
       body: JSON.stringify({ equation_id, target, variables }),
     }),
 
-  chat: (messages: { role: string; content: string }[], provider?: string) =>
+  chat: (
+    messages: { role: string; content: string; images?: string[] }[],
+    provider?: string,
+  ) =>
     request<ChatResponse>('/api/chat', {
       method: 'POST',
       body: JSON.stringify({ messages, provider: provider ?? null }),
