@@ -66,6 +66,24 @@ export interface ProvidersResponse {
   default: string
 }
 
+// --- Tutor chat ---
+export interface ChatSimArtifact {
+  type: 'simulation'
+  simulation_type: SimulationType
+  simulation_params: SimulationParams
+}
+
+export interface ChatResponse {
+  reply: string
+  artifacts: ChatSimArtifact[]
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  artifacts?: ChatSimArtifact[]
+}
+
 export interface DomainInfo {
   id: string
   name: string

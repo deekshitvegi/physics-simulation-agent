@@ -1,5 +1,6 @@
 // Thin API client for the physics agent backend.
 import type {
+  ChatResponse,
   DomainsResponse,
   ProvidersResponse,
   QuickSolveResponse,
@@ -63,5 +64,11 @@ export const api = {
     request<QuickSolveResponse>('/api/solve/quick', {
       method: 'POST',
       body: JSON.stringify({ equation_id, target, variables }),
+    }),
+
+  chat: (messages: { role: string; content: string }[], provider?: string) =>
+    request<ChatResponse>('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ messages, provider: provider ?? null }),
     }),
 }
