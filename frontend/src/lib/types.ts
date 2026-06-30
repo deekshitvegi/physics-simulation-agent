@@ -76,6 +76,7 @@ export interface ChatSimArtifact {
 export interface ChatResponse {
   reply: string
   artifacts: ChatSimArtifact[]
+  verified: boolean
 }
 
 export interface ChatMessage {
@@ -83,6 +84,7 @@ export interface ChatMessage {
   content: string
   artifacts?: ChatSimArtifact[]
   images?: string[]
+  verified?: boolean
 }
 
 export interface DomainInfo {

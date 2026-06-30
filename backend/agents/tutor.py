@@ -31,10 +31,13 @@ _SYSTEM = (
     "a tutor who agrees with everything is useless and untrustworthy.\n"
     "- For multiple-choice questions, evaluate EACH option independently from first "
     "principles, then commit to which is/are correct.\n\n"
-    "HONESTY ABOUT CONFIDENCE:\n"
+    "HONESTY GATE — never bluff:\n"
+    "- If a problem needs methods beyond your tools, or you are genuinely unsure, SAY SO "
+    "plainly: state that you can't solve it reliably and what it would take. Do NOT invent "
+    "a confident answer.\n"
     "- When an answer comes from a tool computation it is exact — say so. When it is "
-    "conceptual reasoning with no computation, make clear it is your best reasoning, "
-    "not a verified calculation.\n\n"
+    "conceptual reasoning with no computation, state clearly that it is your reasoning, "
+    "not a verified calculation, and that the student should double-check.\n\n"
     "SIMULATIONS — use sparingly:\n"
     "- Only call `show_simulation` when the problem is GENUINELY a projectile, pendulum, "
     "wave, electrical circuit, orbiting body, or collision, AND gives concrete numbers.\n"
@@ -64,6 +67,7 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
     ]
     artifacts: list[dict] = []
     last_content = ""
+    computed = False  # True once an exact-math tool is used (verification signal)
 
     for _ in range(MAX_ITERS):
         resp = await provider.chat(work, tools=TOOL_SCHEMAS)
@@ -71,7 +75,7 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
         tool_calls = resp.get("tool_calls") or []
 
         if not tool_calls:
-            return {"reply": last_content, "artifacts": artifacts}
+            return {"reply": last_content, "artifacts": artifacts, "verified": computed}
 
         # Echo the assistant's tool-call message back into the transcript.
         work.append(
@@ -92,6 +96,8 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
         # Execute each tool call and feed results back.
         for tc in tool_calls:
             name = tc["name"]
+            if name in ("calculate", "solve_equation"):
+                computed = True
             try:
                 args = json.loads(tc["arguments"]) if tc["arguments"] else {}
             except json.JSONDecodeError:
@@ -124,4 +130,5 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
     return {
         "reply": last_content or "I wasn't able to finish that — try rephrasing the question.",
         "artifacts": artifacts,
+        "verified": computed,
     }

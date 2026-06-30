@@ -69,7 +69,10 @@ export default function App() {
         history.map((m) => ({ role: m.role, content: m.content, images: m.images })),
         provider || undefined,
       )
-      setMessages([...history, { role: 'assistant', content: res.reply, artifacts: res.artifacts }])
+      setMessages([
+        ...history,
+        { role: 'assistant', content: res.reply, artifacts: res.artifacts, verified: res.verified },
+      ])
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : 'Something went wrong.'
       setMessages([...history, { role: 'assistant', content: `⚠️ ${msg}` }])
@@ -241,6 +244,20 @@ function Bubble({ message }: { message: ChatMessage }) {
       <div className="min-w-0 flex-1 space-y-3">
         <div className="panel px-4 py-3">
           <MathText text={message.content} />
+          {message.verified !== undefined && (
+            <div className="mt-3 border-t border-white/5 pt-2">
+              {message.verified ? (
+                <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Computed exactly with SymPy
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs text-amber-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Conceptual reasoning — not
+                  computationally verified
+                </span>
+              )}
+            </div>
+          )}
         </div>
         {message.artifacts?.map((art, i) => (
           <SimulationCanvas key={i} type={art.simulation_type} params={art.simulation_params} />
