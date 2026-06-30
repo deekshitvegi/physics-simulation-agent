@@ -1,44 +1,99 @@
-# Physics Simulation Agent
+# Physics Tutor Agent
 
-An AI agent that solves physics and math word problems in plain English and renders
-**live, interactive simulations** you can manipulate in real time. Answers are computed
-**symbolically with SymPy** — never hallucinated by the LLM.
+An AI agent that **tutors physics and math by conversation** — but does the actual
+**math with a deterministic engine (SymPy), not by guessing**. It can search the
+web to find published solutions, render live interactive simulations, read problem
+images, and it is **honest about how confident each answer is**.
 
-> Status: 🚧 Under active construction. See [Build Progress](#build-progress).
+![CI](https://github.com/deekshitvegi/physics-simulation-agent/actions/workflows/ci.yml/badge.svg)
+
+> **Core principle: _LLM for language, SymPy for truth._** The language model
+> understands the problem, explains it, and orchestrates tools — but every number
+> is computed by a computer algebra system, so answers are never hallucinated.
+
+---
+
+## What makes it different — the honesty model
+
+Most AI tutors confidently state answers whether or not they're right. This one
+**labels every answer** so you know what to trust:
+
+| Badge | Meaning |
+|-------|---------|
+| 🟢 **Computed exactly with SymPy** | The number came from the math engine — trust it. |
+| 🔵 **Based on web sources** | Found in a published solution — links shown so you can verify. |
+| 🟡 **Conceptual reasoning — not verified** | The model's reasoning, no computation — be skeptical. |
+
+It is also told to **refuse to bluff** — to say *"I can't solve this reliably"*
+rather than invent a confident wrong answer.
 
 ## Features
 
-- Natural-language problem input
-- **Model-agnostic** LLM support: Gemini, Llama (Groq), Mistral, Claude, OpenAI — swap with one env var
-- Symbolic math solving via **SymPy** — no hallucinated answers
-- Live interactive simulations: projectile, pendulum, wave, circuit, orbital, collision
-- Real-time variable sliders — tweak inputs and watch the simulation update
-- 8 physics domains: mechanics, waves, electricity, thermodynamics, gravitation, fluids, quantum, relativity
+- **Conversational tutor** with tool-calling and multi-turn memory
+- **Exact symbolic math** — `calculate` and `solve_equation` run SymPy
+- **62-formula vetted library** across 8 domains, exposed as a `solve_with_formula`
+  tool so the agent uses correct-by-construction physics
+- **Web research (RAG)** — searches the *exact* question, reads the solution
+  page/PDF, and **cites its sources**. If your numbers differ from a found
+  solution, it re-applies the method to *your* values with SymPy.
+- **Vision** — attach a problem screenshot/diagram (Groq Llama-4 Scout)
+- **6 live p5.js simulations** — projectile, pendulum, wave, circuit, orbital, collision
+- **Model-agnostic** — Gemini, Groq (Llama), Mistral, Claude, or OpenAI via one env var
 
-## Tech Stack
+## How the agent works
 
-| Layer | Tech |
-|-------|------|
-| Backend | Python + FastAPI |
-| LLM layer | Model-agnostic provider system (Gemini / Groq / Mistral / Claude / OpenAI) |
-| Math engine | SymPy (symbolic, exact) |
-| Frontend | React + TypeScript + Tailwind CSS |
-| Simulations | p5.js |
-| Deploy | Docker + docker-compose, Vercel (frontend), GitHub Actions (CI/CD) |
+```
+You ask a question (text or image)
+        │
+        ▼
+┌──────────────────────────────────────────────────────────┐
+│  Tutor agent (LLM) — understands + explains + orchestrates │
+│     │  picks tools as needed                               │
+│     ├── calculate / solve_equation   → exact SymPy math    │
+│     ├── solve_with_formula           → vetted library      │
+│     ├── search_web / fetch_url       → find & read solutions│
+│     └── show_simulation              → live p5.js sim       │
+└──────────────────────────────────────────────────────────┘
+        │
+        ▼
+  Answer + worked steps + trust badge + sources + simulation
+```
+
+The LLM never does arithmetic. It decides *what* to compute and *which* formula
+or source to use; the tools return exact results.
+
+## Honest limitations (read this)
+
+This is a real engineering project, so here's the truth about what it can't do:
+
+- **Conceptual reasoning is capped by the model.** Hard, novel, conceptual
+  problems (e.g. JEE-Advanced "which options are true" with no computation) are
+  only as good as the underlying model. On the **free Groq/Llama tier** these are
+  unreliable — it can be wrong and can be swayed by pushback.
+- **Web research is powerful but imperfect.** It reliably solves *known/past-paper*
+  problems when search lands on a real solution (verified: it answered a JEE
+  Advanced 2017 MCQ correctly by reading the official paper) — but it can miss, and
+  **reading full pages/PDFs burns tokens fast** (the free Groq tier has a daily
+  token cap).
+- **It is not a guaranteed answer key.** It's a tutor + research assistant that is
+  *honest about its confidence*, not an oracle.
+
+**The single biggest upgrade is a stronger model** — and because the provider
+layer is model-agnostic, that's a **one-line `.env` change** (no code changes),
+e.g. `LLM_PROVIDER=openai`.
 
 ## Quick Start
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 20+
-- At least one LLM API key (Gemini free tier is the easiest to start with)
+- Python 3.11+, Node.js 20+
+- At least one LLM API key. **Groq** is free and fast (`console.groq.com/keys`).
 
 ### Backend
 ```bash
 cd backend
-cp .env.example .env        # then fill in your API key(s)
+cp .env.example .env        # then add your key, e.g. GROQ_API_KEY + LLM_PROVIDER=groq
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn main:app --reload   # http://localhost:8000
 ```
 
 ### Frontend
@@ -46,94 +101,54 @@ uvicorn main:app --reload
 cd frontend
 cp .env.example .env
 npm install
-npm run dev
+npm run dev                 # http://localhost:5173
 ```
 
 ### Docker (full stack)
 ```bash
-cp backend/.env.example backend/.env   # fill in API keys
-docker-compose up --build
+cp backend/.env.example backend/.env   # add your API key
+docker-compose up --build              # frontend on :5173, backend on :8000
 ```
 
 ## Environment Variables
 
-### Backend
+### Backend (`backend/.env`)
 | Variable | Description |
 |----------|-------------|
 | `LLM_PROVIDER` | Active provider: `gemini` / `groq` / `mistral` / `claude` / `openai` |
-| `GEMINI_API_KEY` | Google AI Studio key |
-| `GROQ_API_KEY` | Groq API key (runs Llama 3.3-70b) |
-| `MISTRAL_API_KEY` | Mistral API key |
-| `ANTHROPIC_API_KEY` | Anthropic API key |
-| `OPENAI_API_KEY` | OpenAI API key |
+| `GROQ_API_KEY` | Groq key (free; runs Llama 3.3-70b for chat, Llama-4 Scout for vision) |
+| `GEMINI_API_KEY` / `MISTRAL_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Other providers |
 | `PORT` | Server port (default 8000) |
+| `CORS_ORIGINS` | Comma-separated extra allowed origins (optional) |
 
-### Frontend
+### Frontend (`frontend/.env`)
 | Variable | Description |
 |----------|-------------|
-| `VITE_API_URL` | Base URL of the backend API |
+| `VITE_API_URL` | Backend base URL (default `http://localhost:8000`) |
 
-## Supported Physics Domains
+## API
 
-- **Mechanics** — projectile, Newton's laws, collisions, rotation, circular motion
-- **Waves & Optics** — interference, refraction, Snell's law, resonance
-- **Electricity & Circuits** — Ohm's law, series/parallel, RC/RL, power
-- **Thermodynamics** — ideal gas, heat transfer, Carnot
-- **Gravitation** — orbital mechanics, escape velocity, gravitational force
-- **Fluid Dynamics** — Bernoulli, continuity, buoyancy
-- **Quantum Basics** — energy levels, photoelectric effect, de Broglie wavelength
-- **Relativity Basics** — time dilation, length contraction, mass-energy
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /api/chat` | Conversational tutor (tool-calling) — main endpoint |
+| `POST /api/solve` | One-shot structured solve (classify → extract → SymPy → simulate) |
+| `POST /api/solve/quick` | Re-solve with new variable values (no LLM) |
+| `GET /api/providers` | Configured + available providers |
+| `GET /api/domains` | Supported physics domains |
+| `GET /health` | Health check |
 
-## Example Problems
+## Tech Stack
 
-- "A ball is thrown at 45° with 20 m/s. How far does it travel?"
-- "A pendulum is 2 meters long. What is its period?"
-- "Two resistors of 4Ω and 6Ω in parallel. Total resistance?"
-- "A wave has frequency 440 Hz and wavelength 0.78 m. What is its speed?"
-- "An ideal gas at 300 K occupies 2 L at 1 atm. What volume at 600 K and 2 atm?"
-- "What is the escape velocity from Earth?"
+- **Backend** — Python, FastAPI, SymPy, model-agnostic LLM layer, DuckDuckGo + BeautifulSoup/pypdf (web research)
+- **Frontend** — React, TypeScript, Tailwind CSS, KaTeX, p5.js
+- **Infra** — Docker + docker-compose, GitHub Actions CI, Vercel (frontend)
 
-## Architecture
+## Tests
 
+```bash
+cd backend && python -m pytest -q     # symbolic solver, agent pipeline, API
 ```
-User problem (plain English)
-        │
-        ▼
-┌──────────────────────────────────────────────┐
-│  Physics Agent Pipeline (backend)            │
-│  1. Classify domain          (LLM)           │
-│  2. Extract variables        (LLM)           │
-│  3. Select equations         (LLM + library) │
-│  4. Solve symbolically       (SymPy — exact) │
-│  5. Map to simulation        (deterministic) │
-│  6. Explain step-by-step     (LLM)           │
-└──────────────────────────────────────────────┘
-        │
-        ▼
-  JSON: answer + steps + simulation_type + params
-        │
-        ▼
-  React UI: KaTeX solution  +  live p5.js simulation  +  sliders
-```
-
-The LLM layer is fully model-agnostic: every provider implements a single
-`LLMProvider.complete(system, user)` interface, and a `ProviderFactory` selects
-the active one from `LLM_PROVIDER`. Core agent/solver logic never references a
-specific provider.
-
-## Build Progress
-
-- [x] Project structure & gitignore
-- [ ] Model-agnostic LLM provider system
-- [ ] SymPy solver & equation library
-- [ ] Physics agent pipeline
-- [ ] FastAPI routes & CORS
-- [ ] React frontend scaffold
-- [ ] Simulations (projectile, pendulum, wave, circuit, orbital, collision)
-- [ ] Variable sliders
-- [ ] Docker & docker-compose
-- [ ] GitHub Actions CI/CD
 
 ## License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file.
