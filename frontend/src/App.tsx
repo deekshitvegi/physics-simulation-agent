@@ -71,7 +71,13 @@ export default function App() {
       )
       setMessages([
         ...history,
-        { role: 'assistant', content: res.reply, artifacts: res.artifacts, verified: res.verified },
+        {
+          role: 'assistant',
+          content: res.reply,
+          artifacts: res.artifacts,
+          verified: res.verified,
+          sources: res.sources,
+        },
       ])
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : 'Something went wrong.'
@@ -245,16 +251,37 @@ function Bubble({ message }: { message: ChatMessage }) {
         <div className="panel px-4 py-3">
           <MathText text={message.content} />
           {message.verified !== undefined && (
-            <div className="mt-3 border-t border-white/5 pt-2">
+            <div className="mt-3 space-y-2 border-t border-white/5 pt-2">
               {message.verified ? (
                 <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Computed exactly with SymPy
                 </span>
+              ) : message.sources && message.sources.length > 0 ? (
+                <span className="inline-flex items-center gap-1.5 text-xs text-sky-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-sky-400" /> Based on web sources — verify via the links below
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-xs text-amber-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Conceptual reasoning — not
-                  computationally verified
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Conceptual reasoning — not computationally verified
                 </span>
+              )}
+              {message.sources && message.sources.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[11px] uppercase tracking-wide text-violet-300/50">Sources</p>
+                  {message.sources.slice(0, 5).map((s, i) => (
+                    <a
+                      key={i}
+                      href={s.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={s.url}
+                      className="block truncate text-xs text-violet-300 underline-offset-2 hover:text-fuchsia-300 hover:underline"
+                    >
+                      {s.read ? '📖 ' : '🔗 '}
+                      {s.title || s.url}
+                    </a>
+                  ))}
+                </div>
               )}
             </div>
           )}

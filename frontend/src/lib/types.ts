@@ -73,10 +73,17 @@ export interface ChatSimArtifact {
   simulation_params: SimulationParams
 }
 
+export interface ChatSource {
+  title: string
+  url: string
+  read?: boolean
+}
+
 export interface ChatResponse {
   reply: string
   artifacts: ChatSimArtifact[]
   verified: boolean
+  sources?: ChatSource[]
 }
 
 export interface ChatMessage {
@@ -85,6 +92,7 @@ export interface ChatMessage {
   artifacts?: ChatSimArtifact[]
   images?: string[]
   verified?: boolean
+  sources?: ChatSource[]
 }
 
 export interface DomainInfo {

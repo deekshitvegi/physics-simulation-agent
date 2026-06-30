@@ -8,8 +8,14 @@ python-dotenv==1.0.1
 # --- Symbolic math engine ---
 sympy==1.13.3
 
-# --- Retry / backoff ---
+# --- HTTP / retry ---
+httpx==0.27.2
 tenacity==9.0.0
+
+# --- Web research (search + page/PDF reading) ---
+ddgs==9.14.4
+beautifulsoup4==4.15.0
+pypdf==6.14.2
 
 # --- LLM provider SDKs ---
 google-generativeai==0.8.3

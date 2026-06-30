@@ -26,6 +26,12 @@ _SYSTEM = (
     "- PREFER vetted formulas: for standard textbook quantities, call `list_formulas` to "
     "find the right one, then `solve_with_formula` — this guarantees the correct formula. "
     "Use `calculate` / `solve_equation` only for steps no library formula covers.\n\n"
+    "RESEARCH known problems:\n"
+    "- For exam/past-paper/textbook problems (e.g. JEE, NEET) or anything likely already "
+    "solved online, USE `search_web` to find the problem or its published solution, then "
+    "`fetch_url` to READ the actual solution page/PDF and extract the answer.\n"
+    "- Verify any arithmetic with `calculate`, CITE the source URL, and prefer official / "
+    "solution sources. Web sources can be wrong — cross-check before trusting them.\n\n"
     "BE TRUTHFUL, NOT AGREEABLE — this is critical:\n"
     "- Do NOT change your answer just because the student disagrees or asserts that "
     "something is true or false. Re-derive it from physics first principles.\n"
@@ -69,6 +75,7 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
         *(_to_provider_message(m) for m in messages),
     ]
     artifacts: list[dict] = []
+    sources: dict[str, dict] = {}  # url -> {title, url, read}
     last_content = ""
     computed = False  # True once an exact-math tool is used (verification signal)
 
@@ -78,7 +85,12 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
         tool_calls = resp.get("tool_calls") or []
 
         if not tool_calls:
-            return {"reply": last_content, "artifacts": artifacts, "verified": computed}
+            return {
+                "reply": last_content,
+                "artifacts": artifacts,
+                "verified": computed,
+                "sources": list(sources.values()),
+            }
 
         # Echo the assistant's tool-call message back into the transcript.
         work.append(
@@ -119,6 +131,16 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
 
             if name == "show_simulation" and "simulation_type" in result:
                 artifacts.append({"type": "simulation", **result})
+            if name == "search_web" and isinstance(result, dict):
+                for hit in result.get("results", []):
+                    u = hit.get("url")
+                    if u:
+                        sources.setdefault(u, {"title": hit.get("title", u), "url": u, "read": False})
+            if name == "fetch_url" and isinstance(result, dict):
+                u = result.get("url")
+                if u:
+                    sources.setdefault(u, {"title": u, "url": u, "read": True})
+                    sources[u]["read"] = True
 
             work.append(
                 {
@@ -134,4 +156,5 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
         "reply": last_content or "I wasn't able to finish that — try rephrasing the question.",
         "artifacts": artifacts,
         "verified": computed,
+        "sources": list(sources.values()),
     }

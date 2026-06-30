@@ -83,6 +83,28 @@ def show_simulation(simulation_type: str, params: dict | None = None) -> dict:
     return {"simulation_type": simulation_type, "simulation_params": clean}
 
 
+def search_web(query: str) -> dict:
+    """Search the web for a problem or its published solution."""
+    from .web import web_search
+
+    try:
+        results = web_search(query, max_results=5)
+    except Exception as exc:  # noqa: BLE001
+        raise ToolError(f"Web search failed: {exc}") from exc
+    return {"query": query, "results": results}
+
+
+def fetch_url(url: str) -> dict:
+    """Fetch and read the text of a web page or PDF (e.g. a solution page)."""
+    from .web import fetch_page
+
+    try:
+        text = fetch_page(url)
+    except Exception as exc:  # noqa: BLE001
+        raise ToolError(f"Could not fetch {url}: {exc}") from exc
+    return {"url": url, "text": text}
+
+
 def list_formulas(domain: str | None = None) -> dict:
     """List vetted equations from the curated library (optionally by domain)."""
     return {"formulas": catalog(domain)}
@@ -118,6 +140,8 @@ TOOL_FUNCTIONS = {
     "solve_equation": solve_equation,
     "list_formulas": list_formulas,
     "solve_with_formula": solve_with_formula,
+    "search_web": search_web,
+    "fetch_url": fetch_url,
     "show_simulation": show_simulation,
 }
 
@@ -193,6 +217,38 @@ TOOL_SCHEMAS = [
                     "knowns": {"type": "object"},
                 },
                 "required": ["equation_id", "target", "knowns"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_web",
+            "description": (
+                "Search the web for a problem or its published solution. USE THIS for exam "
+                "problems (e.g. JEE/NEET past papers), textbook problems, or anything likely "
+                "already solved online. Returns titles, URLs, and snippets."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "fetch_url",
+            "description": (
+                "Fetch and read the full text of a web page or PDF found via search_web "
+                "(e.g. an official solution PDF) to extract the actual worked solution and "
+                "answer. Cite the URL in your reply."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {"url": {"type": "string"}},
+                "required": ["url"],
             },
         },
     },
