@@ -137,6 +137,7 @@ def build_response(
         "simulation_type": sim_type,
         "simulation_params": sim_params,
         "steps": result.steps,
+        "derivation": result.derivation,
         "explanation": explanation,
     }
 
@@ -182,6 +183,7 @@ class PhysicsAgent:
             "simulation_type": sim_type,
             "simulation_params": sim_params,
             "steps": result.steps,
+            "derivation": result.derivation,
             "equations": [eq.formula, f"{target} = {result.expression}"],
             "equation_latex": equation_latex(equation_id),
         }

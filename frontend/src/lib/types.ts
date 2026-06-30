@@ -43,6 +43,7 @@ export interface SolveResponse {
   simulation_type: SimulationType | null
   simulation_params: SimulationParams
   steps: string[]
+  derivation: string[]
   explanation: string
 }
 
@@ -54,6 +55,7 @@ export interface QuickSolveResponse {
   simulation_type: SimulationType | null
   simulation_params: SimulationParams
   steps: string[]
+  derivation: string[]
   equations: string[]
   equation_latex: string
 }

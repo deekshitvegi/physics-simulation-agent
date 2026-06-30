@@ -30,6 +30,7 @@ __all__ = [
     "get_equation",
     "equation_latex",
     "solution_latex",
+    "derivation_latex",
     "DOMAINS",
     "DOMAIN_INFO",
     "SIMULATION_TYPES",
@@ -64,6 +65,7 @@ class SolveResult:
     expression: str
     substitutions: dict[str, float]
     steps: list[str]
+    derivation: list[str] = field(default_factory=list)
     simulation: str | None = None
 
     def to_dict(self) -> dict:
@@ -75,6 +77,7 @@ class SolveResult:
             "expression": self.expression,
             "substitutions": self.substitutions,
             "steps": self.steps,
+            "derivation": self.derivation,
             "simulation": self.simulation,
         }
 
@@ -121,6 +124,52 @@ def solution_latex(equation_id: str, target: str) -> str:
         return _pretty_latex(f"{sp.latex(symbols[target])} = {sp.latex(sols[0])}")
     except Exception:  # noqa: BLE001 - display is best-effort
         return f"{target} = ?"
+
+
+def _num_latex(v: float) -> str:
+    """Format a number as clean LaTeX (scientific notation for big/small)."""
+    fv = float(v)
+    if fv != 0 and (abs(fv) >= 1e4 or abs(fv) < 1e-3):
+        exp = int(floor(log10(abs(fv))))
+        mant = fv / (10 ** exp)
+        return f"{mant:.4g} \\times 10^{{{exp}}}"
+    if fv.is_integer():
+        return str(int(fv))
+    return f"{fv:.6g}"
+
+
+def derivation_latex(
+    equation_id: str, target: str, used: dict[str, float], value: float
+) -> list[str]:
+    """A worked derivation as LaTeX lines:
+
+        target = <rearranged formula>  ->  substituted values  ->  result
+    """
+    eq_def = get_equation(equation_id)
+    try:
+        lhs, rhs, syms = _build_display(eq_def)
+        if target not in syms:
+            return []
+        solutions = sp.solve(sp.Eq(lhs, rhs), syms[target])
+        if not solutions:
+            return []
+        sol = solutions[0]
+        tgt = sp.latex(syms[target])
+
+        lines = [_pretty_latex(f"{tgt} = {sp.latex(sol)}")]
+
+        assignments = [
+            f"{sp.latex(syms[name])} = {_num_latex(v)}"
+            for name, v in used.items()
+            if name in syms and name != target
+        ]
+        if assignments:
+            lines.append(",\\;\\; ".join(assignments))
+
+        lines.append(f"{tgt} = {_num_latex(value)}")
+        return lines
+    except Exception:  # noqa: BLE001 - derivation is best-effort
+        return []
 
 
 def build_equation(eq_def: Equation) -> tuple[sp.Equality, dict[str, sp.Symbol]]:
@@ -277,5 +326,6 @@ def solve_for(
         expression=expression,
         substitutions=used,
         steps=steps,
+        derivation=derivation_latex(equation_id, target, used, value),
         simulation=eq_def.simulation,
     )

@@ -42,20 +42,42 @@ export function SolutionPanel({ result, answer }: Props) {
         )}
       </div>
 
-      {/* Steps */}
-      <div>
-        <h3 className="mb-3 font-display text-sm font-semibold text-violet-100">Step-by-step</h3>
-        <ol className="space-y-2.5">
-          {result.steps.map((step, i) => (
-            <li key={i} className="flex gap-3 text-sm text-violet-100/80">
-              <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[11px] font-semibold text-white">
-                {i + 1}
-              </span>
-              <span>{step}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
+      {/* Worked derivation (rendered math) */}
+      {result.derivation.length > 0 ? (
+        <div>
+          <h3 className="mb-3 font-display text-sm font-semibold text-violet-100">Worked solution</h3>
+          <ol className="space-y-2">
+            {result.derivation.map((line, i) => (
+              <li
+                key={i}
+                className="flex items-center gap-3 overflow-x-auto rounded-lg border border-white/5 bg-black/20 px-3 py-2"
+              >
+                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[11px] font-semibold text-white">
+                  {i + 1}
+                </span>
+                <Katex expr={line} className="text-violet-50" />
+                {i === result.derivation.length - 1 && (
+                  <span className="text-sm text-violet-200/70">{answer.unit}</span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : (
+        <div>
+          <h3 className="mb-3 font-display text-sm font-semibold text-violet-100">Step-by-step</h3>
+          <ol className="space-y-2.5">
+            {result.steps.map((step, i) => (
+              <li key={i} className="flex gap-3 text-sm text-violet-100/80">
+                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[11px] font-semibold text-white">
+                  {i + 1}
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {/* Explanation */}
       {result.explanation && (
