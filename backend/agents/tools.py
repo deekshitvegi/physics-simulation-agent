@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import sympy as sp
 
-from solvers.equations import SIMULATION_TYPES
+from solvers.equations import EQUATIONS, SIMULATION_TYPES
+from solvers.sympy_solver import SolverError, catalog, solve_for
 
 # Safe namespace for parsing expressions: math functions + common constants.
 _SAFE_NS: dict[str, object] = {
@@ -82,11 +83,41 @@ def show_simulation(simulation_type: str, params: dict | None = None) -> dict:
     return {"simulation_type": simulation_type, "simulation_params": clean}
 
 
+def list_formulas(domain: str | None = None) -> dict:
+    """List vetted equations from the curated library (optionally by domain)."""
+    return {"formulas": catalog(domain)}
+
+
+def solve_with_formula(
+    equation_id: str, target: str, knowns: dict | None = None
+) -> dict:
+    """Solve a problem using a VETTED library formula — correct + exact."""
+    if equation_id not in EQUATIONS:
+        raise ToolError(
+            f"Unknown equation_id '{equation_id}'. Call list_formulas first to see valid ids."
+        )
+    try:
+        result = solve_for(equation_id, knowns or {}, target)
+    except SolverError as exc:
+        raise ToolError(str(exc)) from exc
+    return {
+        "equation_id": equation_id,
+        "target": target,
+        "value": result.value,
+        "unit": result.unit,
+        "formula": EQUATIONS[equation_id].display_formula,
+        "derivation": result.derivation,
+        "simulation_type": result.simulation,
+    }
+
+
 # --- Tool registry + JSON schemas (OpenAI/Groq function-calling format) -------
 
 TOOL_FUNCTIONS = {
     "calculate": calculate,
     "solve_equation": solve_equation,
+    "list_formulas": list_formulas,
+    "solve_with_formula": solve_with_formula,
     "show_simulation": show_simulation,
 }
 
@@ -125,6 +156,43 @@ TOOL_SCHEMAS = [
                     "variable": {"type": "string"},
                 },
                 "required": ["equation", "variable"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_formulas",
+            "description": (
+                "List vetted physics formulas from the curated library (id, formula, "
+                "variables). Use this to find the correct formula for standard textbook "
+                "quantities. Optionally filter by domain: mechanics, waves, electricity, "
+                "thermodynamics, gravitation, fluids, quantum, relativity."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {"domain": {"type": "string"}},
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "solve_with_formula",
+            "description": (
+                "Solve using a VETTED library formula — guarantees the correct formula AND "
+                "exact arithmetic. Prefer this over recalling formulas from memory. First "
+                "use list_formulas to find the equation_id and its variable names; pass the "
+                "target variable to solve for and the known numeric values."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "equation_id": {"type": "string"},
+                    "target": {"type": "string"},
+                    "knowns": {"type": "object"},
+                },
+                "required": ["equation_id", "target", "knowns"],
             },
         },
     },

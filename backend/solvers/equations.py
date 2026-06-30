@@ -430,6 +430,141 @@ _EQUATIONS: list[Equation] = [
         {"p": "kg*m/s", "m": "kg", "v": "m/s", "c": "m/s"},
         {"c": 2.998e8},
     ),
+
+    # ---------------- Mechanics (extended) ----------------
+    Equation(
+        "work_done", "Work Done by a Force", "mechanics",
+        "W", "F*d*cos(theta*pi/180)",
+        "Work done by a constant force at an angle to the displacement.",
+        {"W": "J", "F": "N", "d": "m", "theta": "deg"},
+        {}, None, display_rhs="F*d*cos(theta)",
+    ),
+    Equation(
+        "power_velocity", "Power (force x velocity)", "mechanics",
+        "P", "F*v",
+        "Instantaneous power delivered by a force.",
+        {"P": "W", "F": "N", "v": "m/s"},
+    ),
+    Equation(
+        "hookes_law", "Hooke's Law", "mechanics",
+        "F", "k*x",
+        "Restoring force of an ideal spring.",
+        {"F": "N", "k": "N/m", "x": "m"},
+    ),
+    Equation(
+        "elastic_pe", "Elastic Potential Energy", "mechanics",
+        "U", "k*x**2/2",
+        "Energy stored in a stretched/compressed spring.",
+        {"U": "J", "k": "N/m", "x": "m"},
+    ),
+    Equation(
+        "gravitational_pe_surface", "Gravitational PE (near surface)", "mechanics",
+        "U", "m*g*h",
+        "Potential energy of a mass raised a height h near Earth's surface.",
+        {"U": "J", "m": "kg", "g": "m/s^2", "h": "m"},
+        {"g": 9.81},
+    ),
+    Equation(
+        "angular_momentum", "Angular Momentum", "mechanics",
+        "L", "I*omega",
+        "Angular momentum of a rotating body.",
+        {"L": "kg*m^2/s", "I": "kg*m^2", "omega": "rad/s"},
+    ),
+    Equation(
+        "rotational_ke", "Rotational Kinetic Energy", "mechanics",
+        "KE", "I*omega**2/2",
+        "Kinetic energy of a rotating body.",
+        {"KE": "J", "I": "kg*m^2", "omega": "rad/s"},
+    ),
+
+    # ---------------- Gravitation / Space (extended) ----------------
+    Equation(
+        "gravitational_pe", "Gravitational Potential Energy", "gravitation",
+        "U", "-G*m1*m2/r",
+        "Mutual gravitational potential energy of two masses.",
+        {"U": "J", "G": "N*m^2/kg^2", "m1": "kg", "m2": "kg", "r": "m"},
+        {"G": 6.674e-11},
+    ),
+    Equation(
+        "gravitational_field", "Gravitational Field Strength", "gravitation",
+        "g_field", "G*M/r**2",
+        "Gravitational field (acceleration) at distance r from mass M.",
+        {"g_field": "m/s^2", "G": "N*m^2/kg^2", "M": "kg", "r": "m"},
+        {"G": 6.674e-11},
+    ),
+
+    # ---------------- Waves (extended) ----------------
+    Equation(
+        "doppler_effect", "Doppler Effect", "waves",
+        "f_obs", "f*(v + vo)/(v - vs)",
+        "Observed frequency. vo = observer speed toward source (>0), "
+        "vs = source speed toward observer (>0); v = speed of sound.",
+        {"f_obs": "Hz", "f": "Hz", "v": "m/s", "vo": "m/s", "vs": "m/s"},
+    ),
+    Equation(
+        "beat_frequency", "Beat Frequency", "waves",
+        "f_beat", "Abs(f1 - f2)",
+        "Beat frequency from superposing two close frequencies.",
+        {"f_beat": "Hz", "f1": "Hz", "f2": "Hz"},
+    ),
+    Equation(
+        "harmonic_frequency", "Standing Wave Harmonic", "waves",
+        "f", "n*v/(2*L)",
+        "nth harmonic frequency of a string fixed at both ends.",
+        {"f": "Hz", "n": "", "v": "m/s", "L": "m"},
+        {}, "wave",
+    ),
+
+    # ---------------- Electricity (extended) ----------------
+    Equation(
+        "coulombs_law", "Coulomb's Law", "electricity",
+        "F", "k*q1*q2/r**2",
+        "Electrostatic force between two point charges.",
+        {"F": "N", "k": "N*m^2/C^2", "q1": "C", "q2": "C", "r": "m"},
+        {"k": 8.988e9},
+    ),
+    Equation(
+        "electric_field_point", "Electric Field of a Point Charge", "electricity",
+        "E", "k*q/r**2",
+        "Electric field magnitude at distance r from a point charge.",
+        {"E": "N/C", "k": "N*m^2/C^2", "q": "C", "r": "m"},
+        {"k": 8.988e9},
+    ),
+    Equation(
+        "capacitor_charge", "Capacitor Charge", "electricity",
+        "Q", "C*V",
+        "Charge stored on a capacitor.",
+        {"Q": "C", "C": "F", "V": "V"},
+    ),
+    Equation(
+        "capacitor_energy", "Energy Stored in a Capacitor", "electricity",
+        "E", "C*V**2/2",
+        "Energy stored in a charged capacitor.",
+        {"E": "J", "C": "F", "V": "V"},
+    ),
+
+    # ---------------- Thermodynamics (extended) ----------------
+    Equation(
+        "rms_speed", "RMS Speed of Gas Molecules", "thermodynamics",
+        "v_rms", "sqrt(3*R*T/M)",
+        "Root-mean-square speed of ideal gas molecules (M = molar mass).",
+        {"v_rms": "m/s", "R": "J/(mol*K)", "T": "K", "M": "kg/mol"},
+        {"R": 8.314},
+    ),
+
+    # ---------------- Modern physics (extended) ----------------
+    Equation(
+        "radioactive_decay", "Radioactive Decay", "quantum",
+        "N", "N0*exp(-lam*t)",
+        "Number of nuclei remaining after time t (lam = decay constant).",
+        {"N": "", "N0": "", "lam": "1/s", "t": "s"},
+    ),
+    Equation(
+        "half_life", "Half-Life / Decay Constant", "quantum",
+        "t_half", "log(2)/lam",
+        "Relationship between half-life and decay constant.",
+        {"t_half": "s", "lam": "1/s"},
+    ),
 ]
 
 # Public lookup helpers -------------------------------------------------------

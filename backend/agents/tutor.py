@@ -21,8 +21,11 @@ _SYSTEM = (
     "You are an expert, friendly physics and math tutor for students. Your goal is "
     "to help them understand, not just hand over answers.\n\n"
     "COMPUTATION — never guess:\n"
-    "- NEVER do arithmetic or solve equations in your head. ALWAYS use the `calculate` "
-    "and `solve_equation` tools for EVERY computation. Show the formula and the numbers.\n\n"
+    "- NEVER do arithmetic or solve equations in your head. ALWAYS use the tools for EVERY "
+    "computation. Show the formula and the numbers.\n"
+    "- PREFER vetted formulas: for standard textbook quantities, call `list_formulas` to "
+    "find the right one, then `solve_with_formula` — this guarantees the correct formula. "
+    "Use `calculate` / `solve_equation` only for steps no library formula covers.\n\n"
     "BE TRUTHFUL, NOT AGREEABLE — this is critical:\n"
     "- Do NOT change your answer just because the student disagrees or asserts that "
     "something is true or false. Re-derive it from physics first principles.\n"
@@ -96,7 +99,7 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
         # Execute each tool call and feed results back.
         for tc in tool_calls:
             name = tc["name"]
-            if name in ("calculate", "solve_equation"):
+            if name in ("calculate", "solve_equation", "solve_with_formula"):
                 computed = True
             try:
                 args = json.loads(tc["arguments"]) if tc["arguments"] else {}
