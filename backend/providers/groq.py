@@ -26,7 +26,9 @@ def _recover_tool_calls(exc: Exception) -> dict | None:
         for i, m in enumerate(_FUNC_TAG.finditer(generation))
     ]
     if not calls:
-        return None
+        # No parseable tool call — salvage the generation as a text answer
+        # rather than crashing (avoids 500s on flaky tool emissions).
+        return {"content": generation.strip() or None, "tool_calls": []}
     content = generation.split("<function=")[0].strip()
     return {"content": content or None, "tool_calls": calls}
 
@@ -56,7 +58,9 @@ class GroqProvider(LLMProvider):
         multimodal = any(isinstance(m.get("content"), list) for m in messages)
         model = _VISION_MODEL if multimodal else self.model
         kwargs: dict = {"model": model, "messages": messages, "temperature": 0.2}
-        if tools:
+        # The vision model is unreliable at function-calling, so let it just
+        # read + reason on image turns (no tools) to avoid tool_use_failed errors.
+        if tools and not multimodal:
             kwargs["tools"] = tools
             kwargs["tool_choice"] = "auto"
         try:

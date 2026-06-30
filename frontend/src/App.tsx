@@ -24,9 +24,8 @@ export default function App() {
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
 
-  const addFiles = (files: FileList | null) => {
-    if (!files) return
-    Array.from(files)
+  const readAndAdd = (files: File[]) => {
+    files
       .filter((f) => f.type.startsWith('image/'))
       .slice(0, 3)
       .forEach((file) => {
@@ -34,6 +33,9 @@ export default function App() {
         reader.onload = () => setPendingImages((prev) => [...prev, reader.result as string])
         reader.readAsDataURL(file)
       })
+  }
+  const addFiles = (files: FileList | null) => {
+    if (files) readAndAdd(Array.from(files))
   }
 
   useEffect(() => {
@@ -186,8 +188,18 @@ export default function App() {
                   send(input)
                 }
               }}
+              onPaste={(e) => {
+                const imgs = Array.from(e.clipboardData?.items ?? [])
+                  .filter((it) => it.type.startsWith('image/'))
+                  .map((it) => it.getAsFile())
+                  .filter((f): f is File => f !== null)
+                if (imgs.length) {
+                  e.preventDefault()
+                  readAndAdd(imgs)
+                }
+              }}
               rows={1}
-              placeholder="Ask a question, or attach a problem image…  (Enter to send)"
+              placeholder="Ask a question, or paste/attach a problem image…  (Enter to send)"
               className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-violet-50 outline-none placeholder:text-violet-300/40 focus:border-fuchsia-400/40"
             />
             <button
