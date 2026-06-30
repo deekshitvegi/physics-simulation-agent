@@ -15,7 +15,7 @@ from .tools import TOOL_FUNCTIONS, TOOL_SCHEMAS, ToolError
 
 logger = logging.getLogger(__name__)
 
-MAX_ITERS = 6
+MAX_ITERS = 8
 
 _SYSTEM = (
     "You are an expert, friendly physics and math tutor for students. Your goal is "
@@ -151,9 +151,14 @@ async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
                 }
             )
 
-    # Hit the iteration cap — return whatever we have.
+    # Hit the iteration cap — force a final answer (no more tools) from context.
+    try:
+        final = await provider.chat(work, tools=None)
+        reply = (final.get("content") or "").strip()
+    except Exception:  # noqa: BLE001
+        reply = ""
     return {
-        "reply": last_content or "I wasn't able to finish that — try rephrasing the question.",
+        "reply": reply or last_content or "I couldn't fully solve this one — try rephrasing it.",
         "artifacts": artifacts,
         "verified": computed,
         "sources": list(sources.values()),
