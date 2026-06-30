@@ -60,7 +60,8 @@ _DEFAULT_ORIGINS = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_DEFAULT_ORIGINS + settings.cors_origin_list,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    # Any localhost/127.0.0.1 port (dev) + any Vercel deployment.
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
