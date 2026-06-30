@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 
 from tenacity import (
     AsyncRetrying,
+    before_sleep_log,
     retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
@@ -58,31 +59,23 @@ class LLMProvider(ABC):
         Raises:
             LLMError: if every attempt fails or the response is empty.
         """
-        last_exc: Exception | None = None
-        async for attempt in AsyncRetrying(
-            reraise=False,
-            stop=stop_after_attempt(3),
-            wait=wait_exponential(multiplier=1, min=1, max=10),
-            retry=retry_if_exception_type(Exception),
-        ):
-            with attempt:
-                try:
+        try:
+            async for attempt in AsyncRetrying(
+                reraise=True,
+                stop=stop_after_attempt(3),
+                wait=wait_exponential(multiplier=1, min=1, max=10),
+                retry=retry_if_exception_type(Exception),
+                before_sleep=before_sleep_log(logger, logging.WARNING),
+            ):
+                with attempt:
                     text = await self._generate(system, user)
-                except Exception as exc:  # noqa: BLE001 - surfaced below
-                    last_exc = exc
-                    logger.warning(
-                        "%s completion attempt %d failed: %s",
-                        self.name,
-                        attempt.retry_state.attempt_number,
-                        exc,
-                    )
-                    raise
-                if not text or not text.strip():
-                    last_exc = LLMError(f"{self.name} returned an empty response")
-                    raise last_exc
-                return text
+                    if not text or not text.strip():
+                        raise LLMError(f"{self.name} returned an empty response")
+                    return text
+        except LLMError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - normalize provider/SDK errors
+            raise LLMError(f"{self.name} request failed: {exc}") from exc
 
-        # AsyncRetrying with reraise=False swallows the final error; re-surface it.
-        raise LLMError(
-            f"{self.name} failed after 3 attempts: {last_exc}"
-        ) from last_exc
+        # Unreachable (the loop always returns or raises), but satisfies typing.
+        raise LLMError(f"{self.name} produced no response")

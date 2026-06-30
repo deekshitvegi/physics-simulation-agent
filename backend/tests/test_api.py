@@ -66,12 +66,18 @@ def test_quick_solve_missing_value_422():
     assert r.status_code == 422
 
 
-def test_solve_unconfigured_provider_400():
+def test_solve_unconfigured_provider_400(monkeypatch):
+    from providers import ProviderNotConfigured
+
+    def unconfigured(name=None, settings=None):
+        raise ProviderNotConfigured("Provider 'x' is not configured.")
+
+    monkeypatch.setattr(main.ProviderFactory, "create", staticmethod(unconfigured))
     r = client.post(
         "/api/solve",
-        json={"problem": "A ball is thrown at 45 degrees with 20 m/s", "provider": "gemini"},
+        json={"problem": "A ball is thrown at 45 degrees with 20 m/s", "provider": "x"},
     )
-    assert r.status_code == 400  # no API key configured
+    assert r.status_code == 400  # provider not configured -> 400
 
 
 def test_solve_full_pipeline(monkeypatch):
