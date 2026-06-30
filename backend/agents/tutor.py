@@ -72,12 +72,49 @@ def _to_provider_message(m: dict) -> dict:
     return {"role": m["role"], "content": m.get("content", "")}
 
 
+_TRANSCRIBE_SYSTEM = (
+    "You transcribe a physics or math problem from an image into plain text. "
+    "Include EVERY number, exponent (write powers like 10^-2), unit, symbol, and all "
+    "answer options exactly as shown. Output ONLY the transcribed problem — no solution, "
+    "no commentary."
+)
+
+
+async def _transcribe_image(provider: LLMProvider, image_msg: dict) -> str:
+    """Use the vision model to read an image into clean problem text."""
+    try:
+        resp = await provider.chat(
+            [{"role": "system", "content": _TRANSCRIBE_SYSTEM}, image_msg],
+            tools=None,
+        )
+        return (resp.get("content") or "").strip()
+    except Exception:  # noqa: BLE001 - transcription is best-effort
+        return ""
+
+
 async def run_chat(provider: LLMProvider, messages: list[dict]) -> dict:
     """Run the tutor agent over the conversation; return reply + artifacts."""
-    work: list[dict] = [
-        {"role": "system", "content": _SYSTEM},
-        *(_to_provider_message(m) for m in messages),
-    ]
+    # Transcribe any images to clean text first (vision model), so the main
+    # tool-calling + web-search loop runs on an accurate problem statement.
+    prepared: list[dict] = []
+    for m in messages:
+        pm = _to_provider_message(m)
+        if isinstance(pm.get("content"), list):
+            transcription = await _transcribe_image(provider, pm)
+            base = (m.get("content") or "").strip()
+            if transcription:
+                prepared.append(
+                    {
+                        "role": m["role"],
+                        "content": f"{base}\n\nProblem (read from the image):\n{transcription}".strip(),
+                    }
+                )
+            else:
+                prepared.append(pm)  # fall back to sending the image directly
+        else:
+            prepared.append(pm)
+
+    work: list[dict] = [{"role": "system", "content": _SYSTEM}, *prepared]
     artifacts: list[dict] = []
     sources: dict[str, dict] = {}  # url -> {title, url, read}
     last_content = ""
