@@ -9,7 +9,7 @@ python-dotenv==1.0.1
 sympy==1.13.3
 
 # --- HTTP / retry ---
-httpx==0.27.2
+httpx==0.28.1
 tenacity==9.0.0
 
 # --- Web research (search + page/PDF reading) ---
@@ -19,8 +19,8 @@ pypdf==6.14.2
 
 # --- LLM provider SDKs ---
 google-generativeai==0.8.3
-groq==0.13.1
-mistralai==1.2.5
+groq==0.18.0
+mistralai==1.7.0
 anthropic==0.42.0
 openai==1.59.6
 
