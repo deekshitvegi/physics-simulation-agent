@@ -14,20 +14,88 @@ body,
 
 body {
   margin: 0;
-  @apply bg-slate-950 text-slate-100 font-sans antialiased;
+  @apply bg-void font-sans text-violet-50 antialiased;
+  background-image:
+    radial-gradient(900px 520px at 15% -8%, rgba(124, 58, 237, 0.28), transparent 60%),
+    radial-gradient(820px 480px at 88% 4%, rgba(217, 70, 239, 0.2), transparent 58%),
+    radial-gradient(800px 620px at 50% 116%, rgba(34, 211, 238, 0.16), transparent 60%);
+  background-attachment: fixed;
+  background-color: #070512;
 }
 
-/* Subtle range-slider styling shared by the variable sliders. */
+/* Faint starfield layer */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 70% 60%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1px 1px at 40% 80%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 85% 25%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 10% 70%, rgba(255, 255, 255, 0.35), transparent);
+  background-size: 100% 100%;
+  opacity: 0.5;
+}
+
+@layer components {
+  /* Frosted glass panel */
+  .panel {
+    @apply rounded-2xl border border-white/10 bg-white/[0.035] shadow-panel backdrop-blur-xl;
+  }
+
+  /* Animated gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent;
+    background-size: 200% auto;
+  }
+
+  /* Primary gradient button */
+  .btn-cosmic {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white;
+    @apply bg-gradient-to-r from-violet-600 via-fuchsia-600 to-violet-600 bg-[length:200%_auto];
+    @apply shadow-glow transition-all duration-300 hover:bg-[position:right_center] hover:shadow-[0_0_36px_-4px_rgba(217,70,239,0.7)];
+    @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-violet-100 transition-colors hover:border-white/25 hover:bg-white/10;
+  }
+
+  /* Glass chip / pill */
+  .chip {
+    @apply rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-violet-200 transition-all hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10 hover:text-white;
+  }
+}
+
+/* Range sliders — gradient track + glowing thumb */
 input[type='range'] {
-  @apply h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-700;
+  @apply h-1.5 w-full cursor-pointer appearance-none rounded-full;
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.7), rgba(34, 211, 238, 0.7));
 }
 input[type='range']::-webkit-slider-thumb {
-  @apply h-4 w-4 appearance-none rounded-full bg-brand-400 transition-colors;
-  margin-top: 0;
+  @apply h-4 w-4 appearance-none rounded-full bg-white;
+  box-shadow: 0 0 10px 2px rgba(217, 70, 239, 0.7);
+  transition: transform 0.15s ease;
 }
 input[type='range']::-webkit-slider-thumb:hover {
-  @apply bg-brand-300;
+  transform: scale(1.2);
 }
 input[type='range']::-moz-range-thumb {
-  @apply h-4 w-4 rounded-full border-0 bg-brand-400;
+  @apply h-4 w-4 rounded-full border-0 bg-white;
+  box-shadow: 0 0 10px 2px rgba(217, 70, 239, 0.7);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-violet-500/30;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-violet-500/50;
 }

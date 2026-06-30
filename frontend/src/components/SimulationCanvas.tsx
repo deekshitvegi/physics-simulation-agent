@@ -28,7 +28,7 @@ export function SimulationCanvas({ type, params }: Props) {
 
   if (!type || !(type in REGISTRY)) {
     return (
-      <div className="grid h-[360px] place-items-center rounded-lg border border-dashed border-slate-700 bg-slate-900/40 text-center text-sm text-slate-400">
+      <div className="panel grid h-[360px] place-items-center text-center text-sm text-violet-200/60">
         <p className="max-w-xs px-6">
           This result is solved exactly, but it doesn’t map to a visual simulation. The full
           step-by-step solution is on the left.
@@ -41,26 +41,27 @@ export function SimulationCanvas({ type, params }: Props) {
 
   return (
     <div>
-      <div className="rounded-lg border border-slate-800 bg-[#0b1220]">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 shadow-glow-cyan">
+        {/* gradient frame edge */}
+        <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl ring-1 ring-inset ring-white/5" />
         <Sim params={params} playing={playing} resetKey={resetKey} />
       </div>
       <div className="mt-3 flex items-center gap-2">
-        <button
-          onClick={() => setPlaying((v) => !v)}
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-500"
-        >
-          {playing ? '⏸ Pause' : '▶ Play'}
+        <button onClick={() => setPlaying((v) => !v)} className="btn-cosmic !px-4 !py-2">
+          {playing ? '❚❚ Pause' : '▶ Play'}
         </button>
         <button
           onClick={() => {
             setResetKey((k) => k + 1)
             setPlaying(true)
           }}
-          className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200 transition-colors hover:bg-slate-800"
+          className="btn-ghost"
         >
           ↺ Reset
         </button>
-        <span className="ml-auto text-xs capitalize text-slate-500">{type} simulation</span>
+        <span className="ml-auto font-mono text-[11px] uppercase tracking-[0.2em] text-violet-300/40">
+          {type}
+        </span>
       </div>
     </div>
   )

@@ -21,16 +21,16 @@ export function ProviderSelector({ providers, value, onChange, disabled }: Props
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-slate-400">Model</span>
+      <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-violet-300/50">Model</span>
       <select
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100 outline-none focus:border-brand-500 disabled:opacity-50"
+        className="rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-violet-50 outline-none transition-colors focus:border-fuchsia-400/50 disabled:opacity-50"
       >
         {all.length === 0 && <option value="">default</option>}
         {all.map((name) => (
-          <option key={name} value={name}>
+          <option key={name} value={name} className="bg-deep text-violet-50">
             {LABELS[name] ?? name}
             {available.has(name) ? '' : ' (no key)'}
           </option>

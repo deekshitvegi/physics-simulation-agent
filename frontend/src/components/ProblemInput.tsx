@@ -28,42 +28,44 @@ export function ProblemInput({ onSolve, loading, providers, provider, onProvider
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 sm:p-5">
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit()
-        }}
-        placeholder="Describe a physics problem in plain English…  (Ctrl/⌘ + Enter to solve)"
-        rows={3}
-        className="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-brand-500"
-      />
+    <div className="panel animate-fade-in p-4 sm:p-5">
+      <div className="group relative rounded-xl">
+        {/* gradient focus halo */}
+        <div className="pointer-events-none absolute -inset-px rounded-xl bg-gradient-to-r from-violet-500/0 via-fuchsia-500/0 to-cyan-500/0 opacity-0 blur transition-opacity duration-300 group-focus-within:from-violet-500/40 group-focus-within:via-fuchsia-500/40 group-focus-within:to-cyan-500/40 group-focus-within:opacity-100" />
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submit()
+          }}
+          placeholder="Describe a physics problem in plain English…  (Ctrl/⌘ + Enter to solve)"
+          rows={3}
+          className="relative w-full resize-y rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-violet-50 outline-none placeholder:text-violet-300/40 focus:border-fuchsia-400/40"
+        />
+      </div>
 
-      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <ProviderSelector
           providers={providers}
           value={provider}
           onChange={onProviderChange}
           disabled={loading}
         />
-        <button
-          onClick={submit}
-          disabled={loading || !text.trim()}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <button onClick={submit} disabled={loading || !text.trim()} className="btn-cosmic">
           {loading ? (
             <>
               <Spinner /> Solving…
             </>
           ) : (
-            'Solve'
+            <>Solve ✦</>
           )}
         </button>
       </div>
 
-      <div className="mt-4">
-        <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Try an example</p>
+      <div className="mt-5">
+        <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-violet-300/50">
+          Try an example
+        </p>
         <div className="flex flex-wrap gap-2">
           {EXAMPLES.map((ex) => (
             <button
@@ -73,9 +75,9 @@ export function ProblemInput({ onSolve, loading, providers, provider, onProvider
                 if (!loading) onSolve(ex)
               }}
               disabled={loading}
-              className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 text-left text-xs text-slate-300 transition-colors hover:border-brand-500 hover:text-white disabled:opacity-50"
+              className="chip text-left disabled:opacity-50"
             >
-              {ex.length > 52 ? `${ex.slice(0, 52)}…` : ex}
+              {ex.length > 50 ? `${ex.slice(0, 50)}…` : ex}
             </button>
           ))}
         </div>
@@ -85,7 +87,5 @@ export function ProblemInput({ onSolve, loading, providers, provider, onProvider
 }
 
 function Spinner() {
-  return (
-    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-  )
+  return <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
 }

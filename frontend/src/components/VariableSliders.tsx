@@ -27,19 +27,20 @@ export function VariableSliders({ inputs, values, onChange }: Props) {
   if (inputs.length === 0) return null
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
-      <h3 className="mb-3 text-sm font-semibold text-slate-200">
-        Adjust variables <span className="font-normal text-slate-500">— the simulation updates live</span>
+    <div className="panel p-5">
+      <h3 className="mb-4 font-display text-sm font-semibold text-violet-100">
+        Adjust variables{' '}
+        <span className="font-sans font-normal text-violet-300/50">— the simulation updates live</span>
       </h3>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         {inputs.map((input) => {
           const current = values[input.name] ?? input.value
           const { min, max, step } = rangeFor(input, current)
           return (
             <div key={input.name}>
-              <div className="mb-1 flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-300">{input.name}</span>
-                <span className="tabular-nums text-slate-400">
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <span className="font-mono font-medium text-violet-100">{input.name}</span>
+                <span className="font-mono tabular-nums text-cyan-300">
                   {fmt(current)} {input.unit}
                 </span>
               </div>

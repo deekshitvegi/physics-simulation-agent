@@ -3,15 +3,15 @@ import type { SimulationParams } from '../../lib/types'
 export const SIM_HEIGHT = 360
 
 export const COLORS = {
-  bg: '#0b1220',
-  grid: '#16203a',
-  axis: '#334155',
-  accent: '#818cf8',
-  accent2: '#34d399',
-  warn: '#f59e0b',
-  danger: '#f472b6',
-  text: '#cbd5e1',
-  muted: '#64748b',
+  bg: '#0a0716',
+  grid: '#241a45',
+  axis: '#4c3a7a',
+  accent: '#a78bfa', // violet
+  accent2: '#22d3ee', // cyan
+  warn: '#fbbf24',
+  danger: '#e879f9', // fuchsia
+  text: '#ddd6fe',
+  muted: '#8b7fb8',
 } as const
 
 /** Read a numeric param with a fallback (handles nulls/strings/NaN). */
