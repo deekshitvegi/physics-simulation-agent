@@ -80,7 +80,9 @@ This is a real engineering project, so here's the truth about what it can't do:
 
 **The single biggest upgrade is a stronger model** — and because the provider
 layer is model-agnostic, that's a **one-line `.env` change** (no code changes),
-e.g. `LLM_PROVIDER=openai`.
+e.g. `LLM_PROVIDER=openai`. To escape the free-API **daily token cap** entirely,
+run a model locally & unlimited with `LLM_PROVIDER=ollama` (weaker than a 70B, but
+no limits and fully private).
 
 ## Quick Start
 
@@ -115,9 +117,10 @@ docker-compose up --build              # frontend on :5173, backend on :8000
 ### Backend (`backend/.env`)
 | Variable | Description |
 |----------|-------------|
-| `LLM_PROVIDER` | Active provider: `gemini` / `groq` / `mistral` / `claude` / `openai` |
+| `LLM_PROVIDER` | Active provider: `gemini` / `groq` / `mistral` / `claude` / `openai` / `ollama` |
 | `GROQ_API_KEY` | Groq key (free; runs Llama 3.3-70b for chat, Llama-4 Scout for vision) |
 | `GEMINI_API_KEY` / `MISTRAL_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Other providers |
+| `OLLAMA_MODEL` / `OLLAMA_BASE_URL` | Run a model **locally & unlimited** via [Ollama](https://ollama.com) — no key, no token cap (set `LLM_PROVIDER=ollama`) |
 | `PORT` | Server port (default 8000) |
 | `CORS_ORIGINS` | Comma-separated extra allowed origins (optional) |
 

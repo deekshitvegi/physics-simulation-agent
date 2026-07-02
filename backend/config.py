@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-3-5-sonnet-latest"
     openai_model: str = "gpt-4o-mini"
 
+    # Ollama — run an open-source model locally (free, unlimited, no API key).
+    ollama_model: str = "llama3.1"
+    ollama_base_url: str = "http://localhost:11434/v1"
+
     # Server
     port: int = 8000
 

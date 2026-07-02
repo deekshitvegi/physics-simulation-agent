@@ -18,6 +18,8 @@ _REGISTRY: dict[str, tuple[str, str]] = {
     "mistral": ("mistral_api_key", "mistral_model"),
     "claude": ("anthropic_api_key", "anthropic_model"),
     "openai": ("openai_api_key", "openai_model"),
+    # Ollama is local (no key): the base URL is always set, so it's "available".
+    "ollama": ("ollama_base_url", "ollama_model"),
 }
 
 SUPPORTED_PROVIDERS: list[str] = list(_REGISTRY.keys())
@@ -62,6 +64,11 @@ class ProviderFactory:
             raise ProviderNotConfigured(
                 f"Provider '{name}' is not configured. Set {key_attr.upper()} in .env."
             )
+
+        if name == "ollama":
+            from .ollama import OllamaProvider
+
+            return OllamaProvider(base_url=settings.ollama_base_url, model=model)
 
         if name == "gemini":
             from .gemini import GeminiProvider as Provider

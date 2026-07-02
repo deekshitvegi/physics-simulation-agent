@@ -6,6 +6,7 @@ const LABELS: Record<string, string> = {
   mistral: 'Mistral',
   claude: 'Claude',
   openai: 'OpenAI',
+  ollama: 'Ollama (local, free)',
 }
 
 interface Props {

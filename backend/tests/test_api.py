@@ -43,7 +43,7 @@ def test_providers_shape():
     r = client.get("/api/providers")
     assert r.status_code == 200
     data = r.json()
-    assert set(data["providers"]) == {"gemini", "groq", "mistral", "claude", "openai"}
+    assert set(data["providers"]) == {"gemini", "groq", "mistral", "claude", "openai", "ollama"}
     assert isinstance(data["available"], list)
 
 
